@@ -15,7 +15,8 @@ fun App() {
 		Column(Modifier.fillMaxSize()) {
 			Spacer(Modifier.statusBarsPadding())
 
-			DualCharts(Modifier.fillMaxSize())
+			//DualCharts(Modifier.fillMaxSize())
+			SimpleChart(Modifier.fillMaxSize())
 
 			Spacer(Modifier.navigationBarsPadding())
 		}
