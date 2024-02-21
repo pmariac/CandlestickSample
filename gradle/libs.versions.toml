@@ -1,0 +1,34 @@
+[versions]
+agp = "8.2.0"
+android-compileSdk = "34"
+android-minSdk = "24"
+android-targetSdk = "34"
+
+androidx-activityCompose = "1.8.2"
+androidx-core-ktx = "1.12.0"
+compose = "1.6.1"
+compose-plugin = "1.5.12"
+kotlin = "1.9.22"
+
+charts-kt = "1.0.14-RC2"
+d2v = "0.10.6"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+
+charts-kt = { group = "io.data2viz.charts", name = "core", version.ref = "charts-kt" }
+
+d2v-core = { group = "io.data2viz.d2v", name = "d2v-core", version.ref = "d2v" }
+d2v-timer = { group = "io.data2viz.d2v", name = "d2v-timer", version.ref = "d2v" }
+d2v-shape = { group = "io.data2viz.d2v", name = "d2v-shape", version.ref = "d2v" }
+d2v-random = { group = "io.data2viz.d2v", name = "d2v-random", version.ref = "d2v" }
+d2v-viz = { group = "io.data2viz.d2v", name = "d2v-viz", version.ref = "d2v" }
+
+[plugins]
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
