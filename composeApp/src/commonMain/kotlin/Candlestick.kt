@@ -13,6 +13,7 @@ import io.data2viz.charts.chart.temporal
 import io.data2viz.charts.core.CursorDisplay
 import io.data2viz.charts.core.CursorMode
 import io.data2viz.charts.core.CursorType
+import io.data2viz.charts.core.Datum
 import io.data2viz.charts.core.Font
 import io.data2viz.charts.core.HighlightMode
 import io.data2viz.charts.core.PanMode
@@ -21,7 +22,11 @@ import io.data2viz.charts.core.SelectionMode
 import io.data2viz.charts.core.TriggerMode
 import io.data2viz.charts.core.ZoomMode
 import io.data2viz.charts.core.formatToDateTime
+import io.data2viz.charts.event.ChartEvent
 import io.data2viz.charts.event.EventType
+import io.data2viz.charts.event.HighlightEvent
+import io.data2viz.charts.event.PanAction
+import io.data2viz.charts.event.PanEvent
 import io.data2viz.charts.layout.DrawingZone
 import io.data2viz.charts.viz.VizContainer
 import io.data2viz.color.Colors
@@ -39,11 +44,20 @@ private val amountFormatter = locale.formatter(type = Type.FIXED_POINT, precisio
 private val changeFormatter = locale.formatter(type = Type.PERCENT, precision = 2)
 private val volumeFormatter = locale.formatter(type = Type.DECIMAL_WITH_SI, precision = 1)
 
+private enum class TouchMode {
+	TOOLTIP,
+	PAN;
+
+	fun switch() = if (this == TOOLTIP) PAN else TOOLTIP
+}
+
 /**
  * The candlestick chart.
  */
 public fun VizContainer.candleStick(dataset: List<PriceMovement>): Chart<PriceMovement> {
     return chart(dataset) {
+
+		var touchMode = TouchMode.PAN
 
         config {
             events {
@@ -68,8 +82,30 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>): Chart<PriceMo
 				getChartActionOnUserEvent = {
 					when (this.eventType) {
 						EventType.Click		-> {
-							highlight(emptyList<PriceMovement>())
+							// Switch touch mode on "click"
+							touchMode = touchMode.switch()
+							when (touchMode) {
+								TouchMode.TOOLTIP	-> {
+									// push a "highlight event" and set cursor
+									pushEvent(HighlightEvent(selectedData))
+									setCursorFor(selectedData.firstOrNull())
+								}
+								TouchMode.PAN		-> {
+									// push an empty "highlight event" and remove cursor
+									pushEvent(HighlightEvent(listOf<Datum<PriceMovement>>()))
+									setCursorFor(null as PriceMovement?)
+
+									// "translate" this event as a "pan event" and push it
+									pushEvent(PanEvent(panAction))
+								}
+							}
 							defaultChartActionOnUserEvent(this)
+						}
+						EventType.Move		-> {
+							when (touchMode) {
+								TouchMode.TOOLTIP	-> defaultChartActionOnUserEvent(this)
+								TouchMode.PAN		-> pushEvent(PanEvent(panAction))
+							}
 						}
 						else 				-> defaultChartActionOnUserEvent(this)
 					}
