@@ -21,6 +21,7 @@ import io.data2viz.charts.core.SelectionMode
 import io.data2viz.charts.core.TriggerMode
 import io.data2viz.charts.core.ZoomMode
 import io.data2viz.charts.core.formatToDateTime
+import io.data2viz.charts.event.EventType
 import io.data2viz.charts.layout.DrawingZone
 import io.data2viz.charts.viz.VizContainer
 import io.data2viz.color.Colors
@@ -56,6 +57,23 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>): Chart<PriceMo
 				// enable zoom and pan on X axis only
                 zoomMode = ZoomMode.X
                 panMode = PanMode.X
+
+				/**
+				 * Custom "event handler": on a simple "touch" (or click) highlight no value so it
+				 * will hide the tooltip (of any).
+				 *
+				 * In all cases, just delegate to the default event
+				 * handler: defaultChartActionOnUserEvent.
+				 */
+				getChartActionOnUserEvent = {
+					when (this.eventType) {
+						EventType.Click		-> {
+							highlight(emptyList<PriceMovement>())
+							defaultChartActionOnUserEvent(this)
+						}
+						else 				-> defaultChartActionOnUserEvent(this)
+					}
+				}
             }
             cursor {
                 show = true
