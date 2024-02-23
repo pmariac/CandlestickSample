@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,33 +33,32 @@ fun DualCharts(
 ) {
 
 	// Storing the 2 charts
-	var priceChart: Chart<PriceMovement>? by remember { mutableStateOf(null) }
-	var volumeChart: Chart<PriceMovement>? by remember { mutableStateOf(null) }
+	val priceChartState: MutableState<Chart<PriceMovement>?> = remember { mutableStateOf(null) }
+	val volumeChartState: MutableState<Chart<PriceMovement>?> = remember { mutableStateOf(null) }
 
 	// Storing the charts' sizes
 	var priceChartSize: Size by remember { mutableStateOf(Size(.0, .0)) }
 	var volumeChartSize: Size by remember { mutableStateOf(Size(.0, .0)) }
 
 	// This may be removed when the "resizing issue" will be resolved
-	synchronizeEffect(
-		firstChart = priceChart,
-		secondChart = volumeChart,
+	SynchronizeEffect(
+		firstChartState = priceChartState,
+		secondChartState = volumeChartState,
 		firstChartSize = priceChartSize,
 		secondChartSize = volumeChartSize
 	)
 
-	// Generate a random dataset of 40 samples
-	val dataset = generateDataset(40)
+	val dataset = remember { generateDataset(40) }
 
 	// Default layout : 80% top is the candlestick, 20% bottom is the volume chart.
 	Column(modifier) {
 		Viz(modifier = Modifier.fillMaxWidth().weight(.8f)) {
 			it.keepSizeForSynchronization { newSize -> priceChartSize = newSize }
-			priceChart = it.candleStick(dataset)
+			priceChartState.value = it.candleStick(dataset)
 		}
 		Viz(modifier = Modifier.fillMaxWidth().weight(.2f)) {
 			it.keepSizeForSynchronization { newSize -> volumeChartSize = newSize }
-			volumeChart = it.volumeHistogram(dataset)
+			volumeChartState.value = it.volumeHistogram(dataset)
 		}
 	}
 }
@@ -67,14 +68,17 @@ private fun VizContainer.keepSizeForSynchronization(newSize: (Size) -> Unit) {
 }
 
 @Composable
-private fun synchronizeEffect(
-	firstChart: Chart<PriceMovement>?,
-	secondChart: Chart<PriceMovement>?,
+private fun SynchronizeEffect(
+	firstChartState: State<Chart<PriceMovement>?>,
+	secondChartState: State<Chart<PriceMovement>?>,
 	firstChartSize: Size,
 	secondChartSize: Size
 ) {
 	val sizeManager = remember { sizeManager() }
 	val verticalSync = remember { sizeManager.vSynchro() }
+
+	val firstChart by firstChartState
+	val secondChart by secondChartState
 
 	@Suppress("NAME_SHADOWING")
 	DisposableEffect(firstChart, secondChart) {

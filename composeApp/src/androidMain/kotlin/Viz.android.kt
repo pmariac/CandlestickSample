@@ -15,8 +15,6 @@ actual fun Viz(
     AndroidView(
         factory = { VizContainerView(it) },
         modifier = modifier,
-        update = {
-			block(it)
-		}
+        update = { block(it) }
     )
 }
