@@ -48,17 +48,17 @@ fun DualCharts(
 		secondChartSize = volumeChartSize
 	)
 
-	val dataset = remember { generateDataset(40) }
+	val dataset = remember { generateDataset(200) }
 
 	// Default layout : 80% top is the candlestick, 20% bottom is the volume chart.
 	Column(modifier) {
 		Viz(modifier = Modifier.fillMaxWidth().weight(.8f)) {
 			it.keepSizeForSynchronization { newSize -> priceChartSize = newSize }
-			priceChartState.value = it.candleStick(dataset)
+			priceChartState.value = it.candleStick(dataset, 40)
 		}
 		Viz(modifier = Modifier.fillMaxWidth().weight(.2f)) {
 			it.keepSizeForSynchronization { newSize -> volumeChartSize = newSize }
-			volumeChartState.value = it.volumeHistogram(dataset)
+			volumeChartState.value = it.volumeHistogram(dataset, 40)
 		}
 	}
 }
@@ -87,10 +87,11 @@ private fun SynchronizeEffect(
 		verticalSync.addAllCharts(firstChart, secondChart)
 
 		firstChart.onZoom { secondChart.zoom(it.zoomAction) }
+		firstChart.onPan { secondChart.pan(it.panAction) }
 		firstChart.onViewReset { secondChart.viewReset() }
 		firstChart.onHighlight { event ->
 			secondChart.highlight(event.data)
-			event.selectedData.firstOrNull()?.let { secondChart.setCursorFor(it) }
+			secondChart.setCursorFor(event.selectedData.firstOrNull())
 		}
 		onDispose {
 			// should remove listeners

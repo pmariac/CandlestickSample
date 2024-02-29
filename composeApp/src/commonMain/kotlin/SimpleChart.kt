@@ -25,11 +25,11 @@ fun SimpleChart(
 	modifier: Modifier = Modifier
 ) {
 
-	// Generate a random dataset of 40 samples
-	val dataset = generateDataset(40)
+	// Generate a random dataset of 200 samples
+	val dataset = generateDataset(200)
 	Column(modifier) {
 		Viz(modifier = Modifier.fillMaxSize()) {
-			it.candleStick(dataset)
+			it.candleStick(dataset, 40)
 		}
 	}
 }

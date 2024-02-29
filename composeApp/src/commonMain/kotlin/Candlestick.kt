@@ -8,6 +8,7 @@ import io.data2viz.charts.chart.mark.TooltipPosition
 import io.data2viz.charts.chart.mark.candleStick
 import io.data2viz.charts.chart.mark.domainSpecific.PriceMovement
 import io.data2viz.charts.chart.mark.line
+import io.data2viz.charts.chart.mark.verticalHistogram
 import io.data2viz.charts.chart.quantitative
 import io.data2viz.charts.chart.temporal
 import io.data2viz.charts.core.CursorDisplay
@@ -22,10 +23,8 @@ import io.data2viz.charts.core.SelectionMode
 import io.data2viz.charts.core.TriggerMode
 import io.data2viz.charts.core.ZoomMode
 import io.data2viz.charts.core.formatToDateTime
-import io.data2viz.charts.event.ChartEvent
 import io.data2viz.charts.event.EventType
 import io.data2viz.charts.event.HighlightEvent
-import io.data2viz.charts.event.PanAction
 import io.data2viz.charts.event.PanEvent
 import io.data2viz.charts.layout.DrawingZone
 import io.data2viz.charts.viz.VizContainer
@@ -53,8 +52,9 @@ private enum class TouchMode {
 
 /**
  * The candlestick chart.
+ * We start by showing only [showValues] values from the dataset.
  */
-public fun VizContainer.candleStick(dataset: List<PriceMovement>): Chart<PriceMovement> {
+public fun VizContainer.candleStick(dataset: List<PriceMovement>, showValues: Int): Chart<PriceMovement> {
     return chart(dataset) {
 
 		var touchMode = TouchMode.PAN
@@ -154,7 +154,7 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>): Chart<PriceMo
 		 * Then, just use as the 3rd parameter the lambda { domain.toPriceDimension() }
 		 */
 		candleStick(temporalDimension, meanPriceDimension, { domain }) {
-            strokeWidth = constant(2.0)
+			gap = 2
 
 			/**
 			 * As this mark is the main one, we set the axes properties here.
@@ -167,6 +167,9 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>): Chart<PriceMo
                 enableGridLines = true
                 enableTicks = false
                 enableAxisLine = false
+				min = dataset.first().timestamp
+				end = dataset[showValues].timestamp
+				max = dataset.last().timestamp
             }
             y {
                 enableGridLines = true
@@ -191,7 +194,7 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>): Chart<PriceMo
  * (we are currently testing it in release candidate), so you don't have to worry about
  * it as this will just be an import.
  */
-public fun VizContainer.volumeHistogram(dataset: List<PriceMovement>): Chart<PriceMovement> {
+public fun VizContainer.volumeHistogram(dataset: List<PriceMovement>, showValues: Int): Chart<PriceMovement> {
     return chart(dataset) {
 
         config {
@@ -220,9 +223,9 @@ public fun VizContainer.volumeHistogram(dataset: List<PriceMovement>): Chart<Pri
             formatter = { this?.let { volumeFormatter(it) } ?: "" }
         }
 
-        variableColumn(temporalDimension, volumeDimension) {
-            thickness = discrete( { domain.interval * .8 } )
-            strokeColor = discrete( { if (domain.close < domain.open) "#CA3F66".col else "#25A750".col } )
+		verticalHistogram(temporalDimension, volumeDimension, discrete( { domain.interval } )) {
+			gap = 2
+			strokeColor = discrete( { if (domain.close < domain.open) "#CA3F66".col else "#25A750".col } )
             strokeColorHighlight = discrete({ strokeColor(this)?.brighten(1.0) } )
             fill = discrete( { if (domain.close < domain.open) "#CA3F66".col else "#25A750".col } )
             fillHighlight = discrete({ fill(this)?.brighten(1.0) } )
@@ -231,6 +234,9 @@ public fun VizContainer.volumeHistogram(dataset: List<PriceMovement>): Chart<Pri
                 enableGridLines = true
                 enableTicks = false
                 enableAxisLine = false
+				min = dataset.first().timestamp
+				end = dataset[showValues].timestamp
+				max = dataset.last().timestamp
             }
             y {
                 enableGridLines = true
