@@ -17,6 +17,7 @@ import io.data2viz.charts.core.CursorType
 import io.data2viz.charts.core.Datum
 import io.data2viz.charts.core.Font
 import io.data2viz.charts.core.HighlightMode
+import io.data2viz.charts.core.LayoutPosition
 import io.data2viz.charts.core.PanMode
 import io.data2viz.charts.core.SelectedDatum
 import io.data2viz.charts.core.SelectionMode
@@ -35,6 +36,8 @@ import io.data2viz.format.Type
 import io.data2viz.format.formatter
 import io.data2viz.timeFormat.defaultLocale
 import io.data2viz.viz.RichTextBuilder
+import kotlinx.datetime.Instant
+import kotlin.math.max
 
 
 // Locales and formatters
@@ -162,19 +165,22 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>, showValues: In
 			 * - enableGridLines true : shows vertical and horizontal lines based on ticks positions
 			 * - enableTicks false : hide the axes ticks
 			 * - enableAxisLine false : hide the axes lines
+			 * - start of axis (only display the last "showValues" values)
+			 * - min max of axis (to avoid panning outside of the dataset
 			 */
             x {
-                enableGridLines = true
-                enableTicks = false
-                enableAxisLine = false
-				min = dataset.first().timestamp
-				end = dataset[showValues].timestamp
-				max = dataset.last().timestamp
-            }
+				enableGridLines = true
+				enableTicks = false
+				enableAxisLine = false
+				min = getMinTimestamp(dataset)
+				start = getStartTimestamp(dataset, showValues)
+				max = getMaxTimestamp(dataset)
+			}
             y {
                 enableGridLines = true
                 enableTicks = false
                 enableAxisLine = false
+				layoutPosition = LayoutPosition.Right
             }
         }
 
@@ -186,6 +192,17 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>, showValues: In
         }
     }
 }
+
+private fun getStartTimestamp(dataset: List<PriceMovement>, showValues: Int): Instant {
+	val startIndex = max(0, dataset.size - showValues)
+	return dataset[startIndex].timestamp - (dataset[startIndex].interval / 2.0)
+}
+
+private fun getMaxTimestamp(dataset: List<PriceMovement>) =
+	dataset.last().timestamp + (dataset.last().interval / 2.0)
+
+private fun getMinTimestamp(dataset: List<PriceMovement>) =
+	dataset.first().timestamp - (dataset.first().interval / 2.0)
 
 /**
  * The volume chart.
@@ -234,15 +251,16 @@ public fun VizContainer.volumeHistogram(dataset: List<PriceMovement>, showValues
                 enableGridLines = true
                 enableTicks = false
                 enableAxisLine = false
-				min = dataset.first().timestamp
-				end = dataset[showValues].timestamp
-				max = dataset.last().timestamp
+				min = getMinTimestamp(dataset)
+				start = getStartTimestamp(dataset, showValues)
+				max = getMaxTimestamp(dataset)
             }
             y {
                 enableGridLines = true
                 enableTicks = false
                 enableAxisLine = false
                 start = .0
+				layoutPosition = LayoutPosition.Right
             }
         }
     }
@@ -267,9 +285,12 @@ val richTooltip: (SelectedDatum<PriceMovement>?, TooltipPosition?, String?, Stri
 			newLine()
 			text("Close   ", bold = true); text(amountFormatter(domain.close))
 			newLine()
-			text("Chg.    ", bold = true); text(
-			changeFormatter(change),
-			textColor = if (change < 0) "#CA3F66".col else "#25A750".col
-		)
+			text("Chg.    ", bold = true)
+			text(
+				changeFormatter(change),
+				textColor = if (change < 0) "#CA3F66".col else "#25A750".col
+			)
+			newLine()
+			text("Volume  ", bold = true); text(volumeFormatter(domain.volume))
 		}
 	}
