@@ -4,6 +4,7 @@ import io.data2viz.charts.chart.Chart
 import io.data2viz.charts.chart.chart
 import io.data2viz.charts.chart.constant
 import io.data2viz.charts.chart.discrete
+import io.data2viz.charts.chart.mark.Axis
 import io.data2viz.charts.chart.mark.TooltipPosition
 import io.data2viz.charts.chart.mark.candleStick
 import io.data2viz.charts.chart.mark.domainSpecific.PriceMovement
@@ -53,12 +54,20 @@ private enum class TouchMode {
 	fun switch() = if (this == TOOLTIP) PAN else TOOLTIP
 }
 
+private lateinit var timeAxis1: Axis<PriceMovement, Instant>
+private lateinit var timeAxis2: Axis<PriceMovement, Instant>
+
+fun adjustXAxis(dataset: List<PriceMovement>) {
+	timeAxis1.max = getMaxTimestamp(dataset)
+	timeAxis2.max = getMaxTimestamp(dataset)
+}
+
 /**
  * The candlestick chart.
  * We start by showing only [showValues] values from the dataset.
  */
-public fun VizContainer.candleStick(dataset: List<PriceMovement>, showValues: Int): Chart<PriceMovement> {
-    return chart(dataset) {
+public fun VizContainer.candleStick(dataset: List<PriceMovement>, showValues: Int): Chart<PriceMovement> =
+	chart(dataset) {
 
 		var touchMode = TouchMode.PAN
 
@@ -157,6 +166,7 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>, showValues: In
 		 * Then, just use as the 3rd parameter the lambda { domain.toPriceDimension() }
 		 */
 		candleStick(temporalDimension, meanPriceDimension, { domain }) {
+
 			gap = 2
 
 			/**
@@ -168,7 +178,7 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>, showValues: In
 			 * - start of axis (only display the last "showValues" values)
 			 * - min max of axis (to avoid panning outside of the dataset
 			 */
-            x {
+			x {
 				enableGridLines = true
 				enableTicks = false
 				enableAxisLine = false
@@ -182,6 +192,8 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>, showValues: In
                 enableAxisLine = false
 				layoutPosition = LayoutPosition.Right
             }
+
+			timeAxis1 = x
         }
 
         // The "mean" line that is drawn on top of the candlestick and share the same dimensions
@@ -191,7 +203,6 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>, showValues: In
             highlightMode = HighlightMode.Disabled
         }
     }
-}
 
 private fun getStartTimestamp(dataset: List<PriceMovement>, showValues: Int): Instant {
 	val startIndex = max(0, dataset.size - showValues)
@@ -262,6 +273,9 @@ public fun VizContainer.volumeHistogram(dataset: List<PriceMovement>, showValues
                 start = .0
 				layoutPosition = LayoutPosition.Right
             }
+
+
+			timeAxis2 = x
         }
     }
 }
