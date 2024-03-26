@@ -24,6 +24,7 @@ import io.data2viz.charts.core.SelectedDatum
 import io.data2viz.charts.core.SelectionMode
 import io.data2viz.charts.core.TriggerMode
 import io.data2viz.charts.core.ZoomMode
+import io.data2viz.charts.core.formatSmartDouble
 import io.data2viz.charts.core.formatToDateTime
 import io.data2viz.charts.event.EventType
 import io.data2viz.charts.event.HighlightEvent
@@ -43,7 +44,7 @@ import kotlin.math.max
 
 // Locales and formatters
 private val locale = Locale()
-private val amountFormatter = locale.formatter(type = Type.FIXED_POINT, precision = 1)
+private val amountFormatter: (Double?) -> String = { it.formatSmartDouble(locale) }
 private val changeFormatter = locale.formatter(type = Type.PERCENT, precision = 2)
 private val volumeFormatter = locale.formatter(type = Type.DECIMAL_WITH_SI, precision = 1)
 
