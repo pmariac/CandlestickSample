@@ -33,7 +33,9 @@ import io.data2viz.charts.layout.DrawingZone
 import io.data2viz.charts.viz.VizContainer
 import io.data2viz.color.Colors
 import io.data2viz.color.col
+import io.data2viz.format.FormatSpec
 import io.data2viz.format.Locale
+import io.data2viz.format.Symbol
 import io.data2viz.format.Type
 import io.data2viz.format.formatter
 import io.data2viz.timeFormat.defaultLocale
@@ -192,6 +194,16 @@ public fun VizContainer.candleStick(dataset: List<PriceMovement>, showValues: In
                 enableTicks = false
                 enableAxisLine = false
 				layoutPosition = LayoutPosition.Right
+
+				// try one or another:
+				tickFormatSpecifier = FormatSpec(
+					type = Type.FIXED_POINT,
+					groupSeparation = true,
+					symbol = Symbol.CURRENCY
+				)
+//				tickFormatSpecifier = FormatSpec(
+//					type = Type.DECIMAL_WITH_SI
+//				)
             }
 
 			timeAxis1 = x
@@ -218,10 +230,6 @@ private fun getMinTimestamp(dataset: List<PriceMovement>) =
 
 /**
  * The volume chart.
- *
- * NOTE: the [VariableColumn] class will be integrated in an upcoming version of Charts-kt
- * (we are currently testing it in release candidate), so you don't have to worry about
- * it as this will just be an import.
  */
 public fun VizContainer.volumeHistogram(dataset: List<PriceMovement>, showValues: Int): Chart<PriceMovement> {
     return chart(dataset) {
